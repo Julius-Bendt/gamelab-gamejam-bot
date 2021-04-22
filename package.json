@@ -1,0 +1,22 @@
+{
+  "name": "glabbot",
+  "version": "1.0.0",
+  "description": "A discord bot to show when the gamejam ends, and when the next starts",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Julius-Bendt/gamelab-gamejam-bot.git"
+  },
+  "author": "Julius Bendt",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/Julius-Bendt/gamelab-gamejam-bot/issues"
+  },
+  "homepage": "https://github.com/Julius-Bendt/gamelab-gamejam-bot#readme",
+  "dependencies": {
+    "discord.js": "^12.5.3"
+  }
+}
