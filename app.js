@@ -10,8 +10,8 @@ let gamejam = fs.readFileSync("./gamejam.json");
 gamejam = JSON.parse(gamejam.toString());
 
 client.once("ready", () => {
-  const time = new Date().toTimeString ().split(' ')[0];
-  console.log("["+time+"] Bot online");
+  const time = new Date().toTimeString().split(" ")[0];
+  console.log("[" + time + "] Bot online");
 });
 
 client.on("message", (msg) => {
@@ -24,14 +24,28 @@ client.on("message", (msg) => {
         return;
       }
     });
+
+    config.spongebobKeywords.forEach((keyword) => {
+      if (msg.content.includes(keyword)) {
+        msg.reply(spongebobCase(msg.content));
+        return;
+      }
+    });
   }
 
-  config.spongebobKeywords.forEach((keyword) => {
-    if (msg.content.includes(keyword)) {
-      msg.reply(spongebobCase(msg.content));
-      return;
+  if(msg.content.includes("bot") && msg.channel.id == config.writeChannelId)
+  {
+    if(msg.content.includes("god"))
+    {
+      msg.reply("takker ❤🍕");
     }
-  });
+    else
+    {
+      msg.reply("Vil du noget?");
+    }
+   
+    return;
+  }
 
   if (!msg.content.startsWith(config.prefix)) return;
 
@@ -48,11 +62,16 @@ client.on("message", (msg) => {
     case "gamejam":
       msg.reply(getGamejam());
       break;
+      case "jam":
+      msg.reply(getGamejam());
+      break;
     case "troll off":
       config.troll = false;
+      msg.channel.send("Spongebob case is now off");
       break;
     case "troll on":
       config.troll = true;
+      msg.channel.send("Spongebob case is now on");
       break;
     default:
       msg.reply("Det er ikke en valid command!");
@@ -61,23 +80,22 @@ client.on("message", (msg) => {
 });
 
 //run function every day
-setInterval(function(){ 
+setInterval(function () {
   const starts = Date.parse(gamejam.starts);
   const ends = Date.parse(gamejam.ends);
   const now = Date.now();
 
-  if(now > starts && now < ends )
-  {
+  if (now > starts && now < ends) {
     const channel = client.channels.cache.get(config.writeChannelId);
-    
-    channel.send( gamejam.name + " er i gang! det slutter om " + diffInDays(ends) + " dage!");
 
+    channel.send(
+      gamejam.name + " er i gang! det slutter om " + diffInDays(ends) + " dage!"
+    );
 
-    const time = new Date().toTimeString ().split(' ')[0];
-    console.log("["+time+"] Notified about gamejam at"); 
+    const time = new Date().toTimeString().split(" ")[0];
+    console.log("[" + time + "] Notified about gamejam at");
   }
- 
-}, 24 * 60 * 60 * 1000)  // hours*minutes*seconds*milliseconds 24 * 60 * 60 * 1000
+}, 24 * 60 * 60 * 1000); // hours*minutes*seconds*milliseconds 24 * 60 * 60 * 1000
 
 //Returns string
 function getGamejam() {
@@ -135,8 +153,6 @@ function formatDate(date) {
 
   return [day, month, year].join("-");
 }
-
-
 
 client.login(config.discordToken);
 
