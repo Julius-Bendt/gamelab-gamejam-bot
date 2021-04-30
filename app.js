@@ -10,8 +10,7 @@ let gamejam = fs.readFileSync("./gamejam.json");
 gamejam = JSON.parse(gamejam.toString());
 
 client.once("ready", () => {
-  const time = new Date().toTimeString().split(" ")[0];
-  console.log("[" + time + "] Bot online");
+  Log("bot online");
 });
 
 client.on("message", (msg) => {
@@ -26,32 +25,35 @@ client.on("message", (msg) => {
     });
 
     config.spongebobKeywords.forEach((keyword) => {
-      if (msg.content.includes(keyword)) {
+      if (msg.content.toLowerCase().includes(keyword)) {
         msg.reply(spongebobCase(msg.content));
         return;
       }
     });
   }
 
-  if(msg.content.toLowerCase().includes("bot") && msg.channel.id == config.writeChannelId)
-  {
-    if(msg.content.toLowerCase().includes("god"))
-    {
-      msg.reply("takker ❤🍕");
-    }
-    else
-    {
-      msg.reply("Vil du noget?");
-    }
-   
+  if (
+    msg.content.toLowerCase().includes("bot") &&
+    msg.channel.id == config.writeChannelId
+  ) {
+    config.reply.forEach((reply) => {
+      if (msg.content.toLowerCase().includes(reply.if)) {
+        msg.reply(reply.reply);
+        return;
+      }
+    });
+
     return;
   }
 
   if (!msg.content.startsWith(config.prefix)) return;
 
-  const args = msg.content.slice(config.prefix.length).split(/ +/);
-  const command = args.shift().toLowerCase();
-  console.log("Recived command: " + command);
+  const args = msg.content
+    .toLowerCase()
+    .slice(config.prefix.length)
+    .split(/ +/);
+  const command = args.shift();
+  Log("Recived command: {0} other arguments: {1}", [command, args]);
   switch (command) {
     case "ping":
       msg.reply("Pong!");
@@ -62,16 +64,18 @@ client.on("message", (msg) => {
     case "gamejam":
       msg.reply(getGamejam());
       break;
-      case "jam":
+    case "jam":
       msg.reply(getGamejam());
       break;
-    case "troll off":
-      config.troll = false;
-      msg.channel.send("Spongebob case is now off");
-      break;
-    case "troll on":
-      config.troll = true;
-      msg.channel.send("Spongebob case is now on");
+    case "troll":
+      //TODO: Check for user power level (mod/admin)
+      if (args[0] == null || (args[0] != "on" && args[0] != "off")) {
+        msg.reply("Brug med on/off!");
+      } else {
+        config.troll = args[0] == "on";
+        msg.channel.send("Spongebob case is now " + args[0]);
+      }
+
       break;
     default:
       msg.reply("Det er ikke en valid command!");
@@ -79,11 +83,39 @@ client.on("message", (msg) => {
   }
 });
 
-//run function every day
-setInterval(function () {
+const now = new Date();
+target = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate(),
+  config.notify.hour,
+  config.notify.minutes,
+  0
+);
+secondsUntilNotify = target - now;
+
+
+if (secondsUntilNotify < 0) { //The notify time has already passed, wait until tomorrow.
+  target = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    config.notify.hour,
+    config.notify.minutes,
+    0
+  );
+  secondsUntilNotify = target - now;
+}
+
+Log("Bot will start notifying about gamejams in {0} miliseconds. ({1})", [secondsUntilNotify, target])
+setTimeout(function () {
+  notify();
+  startNotifyInterval();
+}, secondsUntilNotify);
+
+function notify() {
   const starts = Date.parse(gamejam.starts);
   const ends = Date.parse(gamejam.ends);
-  const now = Date.now();
 
   if (now > starts && now < ends) {
     const channel = client.channels.cache.get(config.writeChannelId);
@@ -93,9 +125,27 @@ setInterval(function () {
     );
 
     const time = new Date().toTimeString().split(" ")[0];
-    console.log("[" + time + "] Notified about gamejam at");
+    Log("Notified about gamejam");
   }
-}, 24 * 60 * 60 * 1000); // hours*minutes*seconds*milliseconds 24 * 60 * 60 * 1000
+}
+
+function startNotifyInterval() {
+  setInterval(function () {
+    notify();
+  }, 24 * 60 * 60 * 1000);
+}
+
+function Log(message, params) {
+  const time = new Date().toTimeString().split(" ")[0];
+
+  if (params != undefined) {
+    params.forEach((replace, i) => {
+      message = message.replace("{" + i + "}", replace);
+    });
+  }
+
+  console.log("[" + time + "] " + message);
+}
 
 //Returns string
 function getGamejam() {
