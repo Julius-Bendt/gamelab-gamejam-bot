@@ -33,9 +33,9 @@ client.on("message", (msg) => {
     });
   }
 
-  if(msg.content.includes("bot") && msg.channel.id == config.writeChannelId)
+  if(msg.content.toLowerCase().includes("bot") && msg.channel.id == config.writeChannelId)
   {
-    if(msg.content.includes("god"))
+    if(msg.content.toLowerCase().includes("god"))
     {
       msg.reply("takker ❤🍕");
     }
