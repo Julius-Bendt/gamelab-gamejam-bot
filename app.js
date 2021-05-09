@@ -20,14 +20,12 @@ client.on("message", (msg) => {
     config.users_to_troll.forEach((user) => {
       if (msg.author == user) {
         msg.reply(spongebobCase(msg.content));
-        return;
       }
     });
 
     config.spongebobKeywords.forEach((keyword) => {
       if (msg.content.toLowerCase().includes(keyword)) {
         msg.reply(spongebobCase(msg.content));
-        return;
       }
     });
   }
@@ -67,13 +65,54 @@ client.on("message", (msg) => {
     case "jam":
       msg.reply(getGamejam());
       break;
-    case "troll":
-      //TODO: Check for user power level (mod/admin)
-      if (args[0] == null || (args[0] != "on" && args[0] != "off")) {
-        msg.reply("Brug med on/off!");
+    case "notify":
+      if (config.users_to_notify.includes(msg.author)) {
+        config.users_to_notify = config.users_to_troll.filter(
+          (user) => user != msg.author
+        );
+
+        msg.reply(" du er nu fjernet fra notifikationslisten");
       } else {
-        config.troll = args[0] == "on";
-        msg.channel.send("Spongebob case is now " + args[0]);
+        config.users_to_notify.push(msg.author);
+        msg.reply(" du er nu tilføjet til notifikationslisten");
+      }
+      break;
+    case "troll":
+      switch (args[0]) {
+        case "on":
+          config.troll = true;
+          msg.channel.send("Spongebob case is now " + args[0]);
+          break;
+        case "off":
+          config.troll = false;
+          msg.channel.send("Spongebob case is now " + args[0]);
+          break;
+        case "add":
+          user = args[1].slice(3, args[1].length - 1); //Remove @-tags
+
+          if (config.users_to_troll.includes(user)) {
+            msg.reply("Allerde tilføjet!");
+          } else {
+            config.users_to_troll.push(user);
+            msg.reply("Tilføjet");
+          }
+
+          break;
+        case "remove":
+          user = args[1].slice(3, args[1].length - 1); //Remove @-tags
+
+          if (config.users_to_troll.includes(user)) {
+            config.users_to_troll = config.users_to_troll.filter(
+              (_user) => _user != user
+            );
+            msg.reply("Fjernet!");
+          } else {
+            msg.reply("Ikke tilføjet endnu");
+          }
+          break;
+        default:
+          msg.reply("Forkert kommando. Brug on/off, add/remove @user.");
+          break;
       }
 
       break;
@@ -94,8 +133,8 @@ target = new Date(
 );
 secondsUntilNotify = target - now;
 
-
-if (secondsUntilNotify < 0) { //The notify time has already passed, wait until tomorrow.
+if (secondsUntilNotify < 0) {
+  //The notify time has already passed, wait until tomorrow.
   target = new Date(
     now.getFullYear(),
     now.getMonth(),
@@ -107,7 +146,10 @@ if (secondsUntilNotify < 0) { //The notify time has already passed, wait until t
   secondsUntilNotify = target - now;
 }
 
-Log("Bot will start notifying about gamejams in {0} miliseconds. ({1})", [secondsUntilNotify, target])
+Log("Bot will start notifying about gamejams in {0} miliseconds. ({1})", [
+  secondsUntilNotify,
+  target,
+]);
 setTimeout(function () {
   notify();
   startNotifyInterval();
@@ -119,12 +161,18 @@ function notify() {
 
   if (now > starts && now < ends) {
     const channel = client.channels.cache.get(config.writeChannelId);
+    let userTags = "";
+
+    config.users_to_notify.forEach((user) => {
+      userTags += "<@!" + user + ">, ";
+    });
+
 
     channel.send(
-      gamejam.name + " er i gang! det slutter om " + diffInDays(ends) + " dage!"
+      getGamejam() + "\n" + userTags
     );
-
-    const time = new Date().toTimeString().split(" ")[0];
+    
+    
     Log("Notified about gamejam");
   }
 }
@@ -163,13 +211,14 @@ function getGamejam() {
       formatDate(starts) +
       "(" +
       diffInDays(starts) +
-      " dage)"
+      " dage) 🎮"
     );
   }
 
-  return (
-    gamejam.name + " er i gang! det slutter om " + diffInDays(ends) + " dage!"
-  );
+  const _diffInDays = diffInDays(ends);
+  return _diffInDays > 0
+    ? gamejam.name + " er i gang! det slutter om " + _diffInDays + " dage! 🎮🕹"
+    : gamejam.name + " slutter i dag! Er du klar til at aflevere!? 🖥💻";
 }
 
 //Takes a string <input>

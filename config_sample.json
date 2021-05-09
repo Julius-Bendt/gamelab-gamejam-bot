@@ -4,6 +4,7 @@
   "writeChannelId": "",
   "users_to_troll": ["USER_ID that should be spongebob cased when writing"],
   "troll": false,
+  "users_to_notify":[],
   "spongebobKeywords": ["keywords to spongebob case"],
   "notify": { "hour": 17, "minutes": 30 },
   "reply": [
