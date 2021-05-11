@@ -59,6 +59,9 @@ client.on("message", (msg) => {
     case "pizza":
       msg.reply("🍕🍕🍕🍕");
       break;
+    case "gay":
+      msg.reply("gay");
+      break;
     case "gamejam":
       msg.reply(getGamejam());
       break;
